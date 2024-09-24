@@ -27,4 +27,13 @@ public class SceneLoader : SingletonBehaviour<SceneLoader>
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
+    //비동기로 로딩하는 함수
+    public AsyncOperation LoadSceneAsync(SceneType sceneType)
+    {
+        Logger.Log($"{sceneType} Scene async loading...");
+        Time.timeScale = 1f;
+
+        return SceneManager.LoadSceneAsync(sceneType.ToString());
+    }
 }
