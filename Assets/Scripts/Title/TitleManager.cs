@@ -37,7 +37,14 @@ public class TitleManager : MonoBehaviour
         ChapterData chapterData2 = DataTableManager.Instance.GetChapterData(50);
         Logger.Log(chapterData1.ToString());
         Logger.Log(chapterData2.ToString());
-        return;
+        /*var confirmUIData = new confirmUIData();
+        confirmUIData.ConfirmType = ConfirmType.OK_CANCEL;
+        confirmUIData.Titletxt = "UI Test";
+        confirmUIData.DescTxt = "This is UI Test";
+        confirmUIData.OKBtnTxt = "OK";
+        confirmUIData.CancleBtnTxt = "Cancle";
+        UIManager.Instance.OpenUI<ConfirmUI>(confirmUIData);*/
+        
         StartCoroutine(LoadGameGo());
     }
 
