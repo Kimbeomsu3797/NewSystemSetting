@@ -8,17 +8,20 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
 {
     //데이터 테이블 파일들이 들어있는 경로를 String값으로 설정
     private const string DATA_PATH = "DataTable";
-    //챕터 데이터 테이블 파일명을 갖는 String 변수
-    private const string CHAPTER_DATA_TABLE = "ChapterDataTable";
-    //모든 챕터 데이터를 저장할 수 있는 컨테이너 즉, 자료구조를 선언
-    private List<ChapterData> ChapterDataTable = new List<ChapterData>();
+
 
     protected override void Init()
     {
         base.Init();
 
         LoadChapterDataTable();
+        LoadItemDataTable();
     }
+    #region CHAPTER_DATA
+    //챕터 데이터 테이블 파일명을 갖는 String 변수
+    private const string CHAPTER_DATA_TABLE = "ChapterDataTable";
+    //모든 챕터 데이터를 저장할 수 있는 컨테이너 즉, 자료구조를 선언
+    private List<ChapterData> ChapterDataTable = new List<ChapterData>();
     //챕터데이타테이블을 로드하는 함수
     private void LoadChapterDataTable()
     {
@@ -76,6 +79,41 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
         return ChapterDataTable.Where(item => item.ChapterNo == chapterNo).FirstOrDefault();
         //이 테이블안에서 어디에있냐[()안에 있는 조건에 맞는 위치 == 조건이 트루일때만]에서 첫번째 값을 반환
     }
+    #endregion
+
+    #region ITEM_DATA
+    //데이터 테이블 명을 가진 변수를 선언
+    private const string ITEM_DATA_TABLE = "ItemDataTable";
+    //아이템데이터를 담을 컨테이너를 선언
+    private List<ItemData> ItemDataTable = new List<ItemData>();
+
+    //아이템 데이터를 로드하는 함수
+    private void LoadItemDataTable()
+    {
+        //csv파일을 읽어옮
+        var parsedDataTable = CSVReader.Read($"{DATA_PATH}/{ITEM_DATA_TABLE}");
+
+        //데이터를 참고해서 아이템 데이터를 만들어 주자
+        foreach(var data in parsedDataTable)
+        {
+            var itemData = new ItemData
+            {
+                ItemId = Convert.ToInt32(data["item_id"]),
+                ItemName = data["item_name"].ToString(),
+                AttackPower = Convert.ToInt32(data["attack_power"]),
+                Defense = Convert.ToInt32(data["defense"]),
+            };
+            ItemDataTable.Add(itemData);
+        }
+
+        
+    }
+    public ItemData GetItemData(int itemid)
+    {
+        return ItemDataTable.Where(item => item.ItemId == itemid).FirstOrDefault();
+    }
+
+    #endregion
 }
 
 
@@ -86,4 +124,31 @@ public class ChapterData
     public int TotalStages; // 챕터 내 스테이지 개수
     public int ChapterRewardGem;//챕터를 클리어 했을 시 받게 되는 보석
     public int ChapterRewardGold;//챕터를 클리어 했을 시 받게 되는 골드
+}
+//아이템 테이블에 있던 4개의 컬럼 값에 대응하는 변수를 만들어줌
+public class ItemData
+{
+    public int ItemId;
+    public string ItemName;
+    public int AttackPower;
+    public int Defense;
+}
+//아이템 종류가 이 enum값에 상응하도록 만들어 줌
+public enum ItemType
+{
+    Weapon = 1,
+    Shield,
+    ChestArmor,
+    Gloves,
+    Boots,
+    Accessory,
+}
+//아이템 등급이 이 enum값에 상응하도록 만들어 줌
+public enum ItemGrade
+{
+    Common = 1,
+    UnCommon,
+    Rare,
+    Epic,
+    Legendary,
 }

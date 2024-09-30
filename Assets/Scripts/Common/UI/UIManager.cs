@@ -17,6 +17,20 @@ public class UIManager : SingletonBehaviour<UIManager>
     private Dictionary<System.Type, GameObject> m_ClosedUIPool = new Dictionary<System.Type, GameObject>();
     //UI 화면이 열려있는지 닫혀있는지 구분이 필요하기 때문에 UI풀을 위와 같이 2개의 변수로 관리
 
+    private GoodsUI m_StatsUI;
+
+    protected override void Init()
+    {
+        base.Init();
+        //컴포넌트가 연동된 게임 오브젝트를 찾아서 GoodsUI컴퍼넌트를 리턴
+        m_StatsUI = FindObjectOfType<GoodsUI>();
+
+        if (!m_StatsUI)
+        {
+            Logger.Log("No stats ui component found.");
+        }
+    }
+
     //열기를 원하는 UI화면의 실제 인스턴스를 가져오는 함수
     //out 함수에서는 한가지 값이나 참조만 반환할 수 있기 때문에
     //여러가지 값이나 참조를 반환하고 싶을 때 이렇게 out 매개 변수를 사용
@@ -163,6 +177,16 @@ public class UIManager : SingletonBehaviour<UIManager>
         while (m_FrontUI)
         {
             m_FrontUI.CloseUI(true);
+        }
+    }
+
+    public void EnalbeStatsUI(bool value) // => EnableGoodsUI
+    {
+        m_StatsUI.gameObject.SetActive(value);
+
+        if (value)
+        {
+            m_StatsUI.SetValues();//함수를 호출해서 보유한 재화 수량 표시
         }
     }
 }
