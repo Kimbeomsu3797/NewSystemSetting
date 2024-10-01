@@ -189,4 +189,5 @@ public class UIManager : SingletonBehaviour<UIManager>
             m_StatsUI.SetValues();//함수를 호출해서 보유한 재화 수량 표시
         }
     }
+
 }

@@ -24,6 +24,7 @@ public class EquipmentUI : BaseUI
     //아이템 스탯을 표시해줄 텍스트 컴퍼넌트
     public TextMeshProUGUI AttackPowerAmountTxt;
     public TextMeshProUGUI DefenseAmountTxt;
+    public TextMeshProUGUI EquipBtnTxt;
 
     //EquipmentUIData를 받을 변수
     public EquipmentUIData m_EquipmentUIData;
@@ -68,7 +69,7 @@ public class EquipmentUI : BaseUI
             case ItemGrade.Common:
                 hexColor = "#1AB3FF";
                 break;
-            case ItemGrade.UnCommon:
+            case ItemGrade.Uncommon:
                 hexColor = "#51C52C";
                 break;
             case ItemGrade.Rare:
@@ -112,18 +113,45 @@ public class EquipmentUI : BaseUI
         ItemNameTxt.text = itemData.ItemName; // 아이템명 셋팅
         AttackPowerAmountTxt.text = $"+{itemData.AttackPower}"; //공격력 표시
         DefenseAmountTxt.text = $"+{itemData.Defense}"; // 방어력 표시
+        EquipBtnTxt.text = m_EquipmentUIData.IsEquipped ? "Unequip" : "Equip";
     }
+    //그리고 장착, 탈착 버튼을 눌렀을 때 호출 할 함수
+    public void OnClickEquipBtn()
+    {
+        //UserInventoryData를 가져온다.
+        var userInventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
+        //null이면 에러로그
+        if(userInventoryData == null)
+        {
+            Logger.Log("UserInventoryData does not exist");
+        }
+        //장착중이면 탈착
+        if (m_EquipmentUIData.IsEquipped)
+        {
+            userInventoryData.UnequipItem(m_EquipmentUIData.SerialNumber, m_EquipmentUIData.ItemId);
+        }
+        else
+        {
+            userInventoryData.EquipItem(m_EquipmentUIData.SerialNumber, m_EquipmentUIData.ItemId);
+        }
+        userInventoryData.SaveData(); //유저인벤토리 데이터에 변화가 생겼으니 저장
+        //아이템 장착 또는 탈착 했을 때는 인벤토리UI를 갱신해줘야함
+        //UI매니저를 통해 열려있는 인벤토리 UI가 있으면 받아오겠음.
+        var inventoryUI = UIManager.Instance.GetActiveUI<InventoryUI>() as InventoryUI;
 
+        if(inventoryUI != null)//열려있는 UI화면이 있다면
+        {
+            //장착여부에 따라 UI처리 함수를 호출해주겠음
+            if (m_EquipmentUIData.IsEquipped)
+            {
+                inventoryUI.OnUnequipItem(m_EquipmentUIData.ItemId);
+            }
+            else
+            {
+                inventoryUI.OnEquipItem(m_EquipmentUIData.ItemId);
+            }
+        }
+        CloseUI(); //게임의 자연스러운 흐름을 위해 현재 이 UI는 닫아준다.
+    }
     
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

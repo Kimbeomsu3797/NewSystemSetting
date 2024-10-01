@@ -8,6 +8,7 @@ public class EquippedItemSlot : MonoBehaviour
 {
     //장착된 아이템이 없을 때 표시해줄[+] 아이콘 변수
     public Image AddIcon;
+    public Image EquippedItemGradeBg; // 등급 이미지 컴퍼넌트 변수
     //장착된 아이템이 있을 때 표시해줄 아이템 아이콘 변수
     public Image EquippedItemIcon;
 
@@ -16,10 +17,22 @@ public class EquippedItemSlot : MonoBehaviour
     //장착된 아이템이 있을시 UI요소를 처리해 주는 함수
     public void SetItem(UserItemData userItemData)//매개변수로 장착할 아이템 데이터를 넘겨준다
     {
+       
         m_EquippedItemData = userItemData;
         AddIcon.gameObject.SetActive(false); //장착될 아이템이 없을 때 표시해줄 [+] 아이콘 비활성화
+        EquippedItemGradeBg.gameObject.SetActive(true);
         EquippedItemIcon.gameObject.SetActive(true);//장착될 아이템이 있을 때 표시해줄 아이템 아이콘 활성화
 
+        //아이템 등급에 맞는 이미지를 로드해서 셋팅
+        var itemGrade = (ItemGrade)((m_EquippedItemData.ItemId / 1000) % 10);
+        
+        var gradeBgTexture = Resources.Load<Texture2D>($"Textures/{itemGrade}");
+        if(gradeBgTexture != null)
+        {
+            EquippedItemGradeBg.sprite = Sprite.Create
+                (gradeBgTexture, new Rect(0, 0, gradeBgTexture.width, gradeBgTexture.height), new Vector2(1f, 1f));
+        }
+        
         //아이템ID에 맞는 이미지를 로드해서 아이템 컴퍼넌트에 세팅
         //텍스처가 잘 로드되었으면 아이템아이콘이미지컴퍼넌트에 세팅
         StringBuilder sb = new StringBuilder(m_EquippedItemData.ItemId.ToString());
@@ -39,6 +52,7 @@ public class EquippedItemSlot : MonoBehaviour
     {
         m_EquippedItemData = null;
         AddIcon.gameObject.SetActive(true);
+        EquippedItemGradeBg.gameObject.SetActive(false);
         EquippedItemIcon.gameObject.SetActive(false);
     }
 
@@ -52,18 +66,15 @@ public class EquippedItemSlot : MonoBehaviour
         uiData.ItemId = m_EquippedItemData.ItemId;
         //F12를 눌러 EquipmentUIData가 정의되어 있는 곳으로 가서 변수 추가 해주자
         //IsEquipped
-        uiData.IsEquipped = true;
+        if (uiData == null)
+        {
+            uiData.IsEquipped = false;
+        }
+        else
+        {
+            uiData.IsEquipped = true;
+        }
         UIManager.Instance.OpenUI<EquipmentUI>(uiData);
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+ 
 }

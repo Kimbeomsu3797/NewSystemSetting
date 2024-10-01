@@ -82,15 +82,4 @@ public class SettingsUI : BaseUI
         AudioManager.Instance.PlaySFX(SFX.ui_button_click);
         Application.OpenURL(PRIVACY_POLICY_URL);
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

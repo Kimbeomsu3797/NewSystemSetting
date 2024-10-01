@@ -44,10 +44,22 @@ public class UserInventoryItemDataListWrapper
     public List<UserItemData> InventoryItemDataList;
 }
 
+public class UserItemStats
+{
+    public int AttackPower;
+    public int Defense;
+    //생성자
+    public UserItemStats(int attackPower, int defense)
+    {
+        AttackPower = attackPower;
+        Defense = defense;
+    }
+}
+
 public class UserInventoryData : IUserData
 {
     //각 장착 슬롯의 변수를 선언
-    public UserItemData EquippedWeaponData { get; set; }
+    public UserItemData EquippedWeaponData { get; set; } //무기 장착 슬롯
     public UserItemData EquippedShieldData { get; set; }
     public UserItemData EquippedChestArmorData { get; set; }
     public UserItemData EquippedBootsData { get; set; }
@@ -57,8 +69,18 @@ public class UserInventoryData : IUserData
 
 
 
+
     public List<UserItemData> InventoryItemDataList { get; set; } = new List<UserItemData>();
 
+    // 장착된 아이템 데이터를 한곳에 모아 관리하는 딕셔너리 변수 추가
+    //key : 장착한 아이템의 시리얼 넘버, Value : 아이템의 공격력과 방어력을 모아놓은 새로운 클래스
+    //이미 장착 아이템 변수들이 있는데 이 딕셔너리에 장착한 모든 아이템들의 데이터를 추가하는 이유는
+    //특정 아이템이 장착이 되어 있는지 여부, 또 장착한 아이템들의 스텟의 총합이 어떻게 되는지 등의 처리가 필요할때
+    //매번 이 개별적인 변수들이 null인지 확인하고 그 후에 아이템 데이터 테이블에서 데이터를 찾아와서
+    //스텟 값들이 어떻게 되는지 확인하는 것이 코드도 복잡하고 연산도 오래걸리기 때문이다.
+    //그러나 이렇게 하나의 딕셔너리로 관리하게된다면 딕셔너리의 특성 때문에 장착한 아이템의 데이터를
+    //검색하는 것도 빠르고 또 유저의 스텟 계산을 하는 것도 더 간편하기 때문에 사용한다.
+    public Dictionary<long, UserItemStats> EquippedItemDic { get; set; } = new Dictionary<long, UserItemStats>();
     public void SetDefaultData()
     {
         Logger.Log($"{GetType()}::SetDefaultData");
@@ -89,6 +111,10 @@ public class UserInventoryData : IUserData
 
         EquippedWeaponData = new UserItemData(InventoryItemDataList[0].SerialNumber, InventoryItemDataList[0].ItemId);
         EquippedShieldData = new UserItemData(InventoryItemDataList[2].SerialNumber, InventoryItemDataList[2].ItemId);
+        
+        //게임을 처음 실행했을 때는 저장되어있는 아이템을 로딩하는것이아니라 //SetDefaultData()에서 호출하므로
+        //여기서 호출해 줘야 장착된 아이템이 딕셔너리에 추가됨.
+        SetEquippedItemDic();
     }
 
     //유저가 보유한 아이템을 로드하는 함수
@@ -97,6 +123,7 @@ public class UserInventoryData : IUserData
         Logger.Log($"{GetType()}::LoadData");
 
         bool result = false;
+       
         try
         {
             //장착 아이템 데이터를 로드하는 로직을 작성
@@ -126,10 +153,10 @@ public class UserInventoryData : IUserData
                 EquippedBootsData = JsonUtility.FromJson<UserItemData>(BootsJson);
                 Logger.Log($"EquippedBootsData: SN:{EquippedBootsData.SerialNumber}ItemId{EquippedBootsData.ItemId}");
             }
-            string GlovesJson = PlayerPrefs.GetString("EquippedGolvesData");
-            if (!string.IsNullOrEmpty(GlovesJson))
+            string glovesJson = PlayerPrefs.GetString("EquippedGlovesData");
+            if (!string.IsNullOrEmpty(glovesJson))
             {
-                EquippedGlovesData = JsonUtility.FromJson<UserItemData>(GlovesJson);
+                EquippedGlovesData = JsonUtility.FromJson<UserItemData>(glovesJson);
                 Logger.Log($"EquippedGlovesData: SN:{EquippedGlovesData.SerialNumber}ItemId{EquippedGlovesData.ItemId}");
             }
             string AcessoryJson = PlayerPrefs.GetString("EquippedAcessoryData");
@@ -138,14 +165,6 @@ public class UserInventoryData : IUserData
                 EquippedAcessoryData = JsonUtility.FromJson<UserItemData>(AcessoryJson);
                 Logger.Log($"EquippedAcessoryData: SN:{EquippedAcessoryData.SerialNumber}ItemId{EquippedAcessoryData.ItemId}");
             }
-        }
-        catch
-        {
-            throw;
-        }
-        try
-        {
-
             //인벤토리아이템데이터 리스트로 저장된 스트링 값이 있는지 확인
             //만약 데이터가 존재한다면 JsonUtility클래스를 이용해 위에서 만든 래퍼클래스로 저장된 데이터를 받아옮
             string inventoryItemDataListJson = PlayerPrefs.GetString("InventoryItemDataList");
@@ -164,7 +183,8 @@ public class UserInventoryData : IUserData
                     Logger.Log($"SerialNumber:{item.SerialNumber} ItemId:{item.ItemId}");
                 }
             }
-
+            //유저 인벤토리데이터를 로드할 시 모든 로딩이 끝나고 나면 함수 호출
+            SetEquippedItemDic();
             result = true;
         }
         catch (System.Exception e)
@@ -181,6 +201,7 @@ public class UserInventoryData : IUserData
         Logger.Log($"{GetType()}::SaveData");
 
         bool result = false;
+       
         try
         {
             string weaponJson = JsonUtility.ToJson(EquippedWeaponData);
@@ -190,7 +211,7 @@ public class UserInventoryData : IUserData
                 Logger.Log($"EquippedWeaponData: SN:{EquippedWeaponData.SerialNumber}ItemId{EquippedWeaponData.ItemId}");
             }
             string shieldJson = JsonUtility.ToJson(EquippedShieldData);
-                PlayerPrefs.SetString("EquippedShieldData", shieldJson);
+            PlayerPrefs.SetString("EquippedShieldData", shieldJson);
             if (EquippedShieldData != null)
             {
                 Logger.Log($"EquippedShieldData: SN:{EquippedShieldData.SerialNumber}ItemId{EquippedShieldData.ItemId}");
@@ -208,7 +229,7 @@ public class UserInventoryData : IUserData
                 Logger.Log($"EquippedBootsData: SN:{EquippedBootsData.SerialNumber}ItemId{EquippedBootsData.ItemId}");
             }
             string GlovesJson = JsonUtility.ToJson(EquippedGlovesData);
-            PlayerPrefs.SetString("EquippedGolvesData", GlovesJson);
+            PlayerPrefs.SetString("EquippedGlovesData", GlovesJson);
             if (EquippedGlovesData != null)
             {
                 Logger.Log($"EquippedGlovesData: SN:{EquippedGlovesData.SerialNumber}ItemId{EquippedGlovesData.ItemId}");
@@ -219,13 +240,6 @@ public class UserInventoryData : IUserData
             {
                 Logger.Log($"EquippedAcessoryData: SN:{EquippedAcessoryData.SerialNumber}ItemId{EquippedAcessoryData.ItemId}");
             }
-        }
-        catch
-        {
-            throw;
-        }
-        try
-        {
             //저장에 필요한 랩퍼 클래스 인스터스를 생성
             //그 인스터스 안에 있는 아이템 데이터리스트에 유저가 현재 보유한 인벤토리 아이템 정보를
             //담고 있는 인벤토리 아이템 데이터 리스트를 대입
@@ -243,7 +257,7 @@ public class UserInventoryData : IUserData
             {
                 Logger.Log($"SerialNumber:{item.SerialNumber} ItemId:{item.ItemId}");
             }
-
+            
             PlayerPrefs.Save();
             result = true;
         }
@@ -253,5 +267,173 @@ public class UserInventoryData : IUserData
         }
 
         return result;
+    }
+    //데이터를 확인해서 장착된 아이템이 있다면 필요한 정보를 가공해서
+    //EquippedItemDic에 추가
+    public void SetEquippedItemDic()
+    {
+        if(EquippedWeaponData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedWeaponData.ItemId);
+            if(itemData != null)
+            {
+                EquippedItemDic.Add(EquippedWeaponData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+        if (EquippedShieldData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedShieldData.ItemId);
+            if (itemData != null)
+            {
+                EquippedItemDic.Add(EquippedShieldData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+        if (EquippedGlovesData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedGlovesData.ItemId);
+            if (itemData != null)
+            {
+                EquippedItemDic.Add(EquippedGlovesData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+        if (EquippedChestArmorData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedChestArmorData.ItemId);
+            if (itemData != null)
+            {
+                EquippedItemDic.Add(EquippedChestArmorData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+        if (EquippedBootsData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedBootsData.ItemId);
+            if (itemData != null)
+            {
+                EquippedItemDic.Add(EquippedBootsData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+        if (EquippedAcessoryData != null)
+        {
+            var itemData = DataTableManager.Instance.GetItemData(EquippedAcessoryData.ItemId);
+            if (itemData != null)
+            {
+                EquippedItemDic.Add(EquippedAcessoryData.SerialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+            }
+        }
+    }
+
+    //특정 아이템이 장착되어있는지 여부를 확인하는 함수
+    public bool IsEquipped(long serialNumber)
+    {
+        return EquippedItemDic.ContainsKey(serialNumber);
+    }
+    //아이템 장착처리를 해주는 함수
+    public void EquipItem(long serialNumber, int itemId)
+    {
+        //데이터테이블에서 해당 아이템에 대한 데이터를 가져온다.
+        var itemData = DataTableManager.Instance.GetItemData(itemId);
+        //없으면 에러로그
+        if(itemData == null)
+        {
+            Logger.LogError($"Item data does not exist. ItemId:{itemId}");
+            return;
+        }
+        //아이템 종류 추출 (첫번째 숫자가 아이템 종류)
+        var itemType = (ItemType)(itemId / 10000);
+        switch (itemType)
+        {
+            case ItemType.Weapon:
+                if(EquippedWeaponData != null)
+                {
+                    EquippedItemDic.Remove(EquippedWeaponData.SerialNumber);
+                    EquippedWeaponData = null;
+                }
+                EquippedWeaponData = new UserItemData(serialNumber, itemId);
+                break;
+            case ItemType.Shield:
+                if (EquippedShieldData != null)
+                {
+                    EquippedItemDic.Remove(EquippedShieldData.SerialNumber);
+                    EquippedShieldData = null;
+                }
+                EquippedShieldData = new UserItemData(serialNumber, itemId);
+                break;
+            case ItemType.ChestArmor:
+                if (EquippedChestArmorData != null)
+                {
+                    EquippedItemDic.Remove(EquippedChestArmorData.SerialNumber);
+                    EquippedChestArmorData = null;
+                }
+                EquippedChestArmorData = new UserItemData(serialNumber, itemId);
+                break;
+            case ItemType.Gloves:
+                if (EquippedGlovesData != null)
+                {
+                    EquippedItemDic.Remove(EquippedGlovesData.SerialNumber);
+                    EquippedGlovesData = null;
+                }
+                EquippedGlovesData = new UserItemData(serialNumber, itemId);
+                break;
+            case ItemType.Boots:
+                if (EquippedBootsData != null)
+                {
+                    EquippedItemDic.Remove(EquippedBootsData.SerialNumber);
+                    EquippedBootsData = null;
+                }
+                EquippedBootsData = new UserItemData(serialNumber, itemId);
+                break;
+            case ItemType.Accessory:
+                if (EquippedAcessoryData != null)
+                {
+                    EquippedItemDic.Remove(EquippedAcessoryData.SerialNumber);
+                    EquippedAcessoryData = null;
+                }
+                EquippedAcessoryData = new UserItemData(serialNumber, itemId);
+                break;
+            default:
+                break;
+        }
+        EquippedItemDic.Add(serialNumber, new UserItemStats(itemData.AttackPower, itemData.Defense));
+    }
+    public void UnequipItem(long serialNumber, int itemId)
+    {
+        //마찬가지로 아이템 종류값을 추출하고
+        var itemType = (ItemType)(itemId / 10000);
+        //아이템 종류에 따라 해당 변수를 초기화해줌
+        switch (itemType)
+        {
+            case ItemType.Weapon:
+                EquippedWeaponData = null;
+                break;
+            case ItemType.Shield:
+                EquippedShieldData = null;
+                break;
+            case ItemType.Gloves:
+                EquippedGlovesData = null;
+                break;
+            case ItemType.ChestArmor:
+                EquippedChestArmorData = null;
+                break;
+            case ItemType.Boots:
+                EquippedBootsData = null;
+                break;
+            case ItemType.Accessory:
+                EquippedAcessoryData = null;
+                break;
+            default:
+                break;
+        }
+        EquippedItemDic.Remove(serialNumber);
+    }
+    public UserItemStats GetUserTotalItemStats()
+    {
+        var totalAttackPower = 0;
+        var totalDefense = 0;
+        foreach(var item in EquippedItemDic)
+        {
+            totalAttackPower += item.Value.AttackPower;
+            totalDefense += item.Value.Defense;
+        }
+        return new UserItemStats(totalAttackPower, totalDefense);
     }
 }

@@ -908,13 +908,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97b621e9097d6544fb0e65ff4c7f922f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIOpenAnim: {fileID: 0}
+  m_UIOpenAnim: {fileID: 8251138351880293376}
   ItemGradeBg: {fileID: 2180642332443482388}
   ItemIcon: {fileID: 2180642332255977316}
   ItemGradeTxt: {fileID: 2180642331186039299}
   ItemNameTxt: {fileID: 2180642332043355331}
   AttackPowerAmountTxt: {fileID: 2180642332867396455}
   DefenseAmountTxt: {fileID: 2180642331270726093}
+  EquipBtnTxt: {fileID: 2180642332428886416}
 --- !u!1 &2180642332043355333
 GameObject:
   m_ObjectHideFlags: 0
@@ -1170,7 +1171,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2180642332070407508}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 4479746546456606256}
+        m_TargetAssemblyTypeName: EquipmentUI, Assembly-CSharp
+        m_MethodName: OnClickEquipBtn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!95 &9168409472410559563
 Animator:
   serializedVersion: 5
@@ -1490,7 +1503,7 @@ GameObject:
   - component: {fileID: 2180642332428886417}
   - component: {fileID: 2180642332428886416}
   m_Layer: 5
-  m_Name: EquipTxt
+  m_Name: EquipBtnTxt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

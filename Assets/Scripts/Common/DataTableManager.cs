@@ -147,7 +147,7 @@ public enum ItemType
 public enum ItemGrade
 {
     Common = 1,
-    UnCommon,
+    Uncommon,
     Rare,
     Epic,
     Legendary,

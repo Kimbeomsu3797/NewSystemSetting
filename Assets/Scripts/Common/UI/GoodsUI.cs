@@ -25,15 +25,4 @@ public class GoodsUI : MonoBehaviour
         GoldAmountTxt.text = userGoodData.Gold.ToString("NO");
         GemAmountTxt.text = userGoodData.Gold.ToString("NO");
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

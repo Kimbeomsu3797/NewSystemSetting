@@ -27,19 +27,6 @@ public class InventoryItemSlot : InfiniteScrollItem
     //InventoryItemSlotData를 받을 변수
     private InventoryItemSlotData m_InventoryItemSlotData;
     
-
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-       
-    }
     //InfiniteScrollItem에 있는 UpdateData를 오버라이드 해서
     //슬롯 UI에 대한 처리를 하게함
     //인피니티스크롤데이터를 매개변수로 받아와서 ui를 세팅해 줄 함수

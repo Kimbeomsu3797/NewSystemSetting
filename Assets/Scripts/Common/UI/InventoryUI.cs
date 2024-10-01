@@ -24,15 +24,34 @@ public class InventoryUI : BaseUI
     public TextMeshProUGUI SortBtnTxt;
     //현재 정렬 방식을 갖고 있는 변수 선언, 초기값은 등급으로.
     private InventorySortType m_InventorySortType = InventorySortType.ItemGrade;
+
+    public TextMeshProUGUI AttackPowerAmountTxt;
+    public TextMeshProUGUI DefenseAmountTxt;
     public override void SetInfo(BaseUIData uiData)
     {
         //스크롤뷰 처리를 위한 InfiniteScroll InventoryScrollList;
         base.SetInfo(uiData);
 
+        SetUserStats(); // 초기, 장착, 탈착 할때 호출해줌
         SetEquippedItems();//장착된 아이템에 대한 UI처리를 담당할 함수 호출
         SetInventory();
         //인벤토리 정렬 함수 호출
         SortInventory();
+    }
+
+    private void SetUserStats()
+    {
+        //유저인벤토리데이터를 가져옴
+        var userinventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
+        if(userinventoryData == null)
+        {
+            Logger.LogError("UserInventoryData does not exist");
+        }
+        //위 userInventoryData 에서 만든 함수 호출에 스탯 초합에 대한 데이터를 가져오고
+        var userTotalItemStats = userinventoryData.GetUserTotalItemStats();
+        //이를 각 텍스트 컴퍼넌트에 표시
+        AttackPowerAmountTxt.text = $"+{userTotalItemStats.AttackPower.ToString("N0")}";
+        DefenseAmountTxt.text = $"+{userTotalItemStats.Defense.ToString("N0")}";
     }
 
     private void SetEquippedItems()
@@ -54,13 +73,13 @@ public class InventoryUI : BaseUI
         {
             WeaponSlot.ClearItem();
         }
-        if (userInventoryData.EquippedWeaponData != null)
+        if (userInventoryData.EquippedGlovesData != null)
         {
-            WeaponSlot.SetItem(userInventoryData.EquippedWeaponData);
+            GlovesSlot.SetItem(userInventoryData.EquippedGlovesData);
         }
         else
         {
-            WeaponSlot.ClearItem();
+            GlovesSlot.ClearItem();
         }
         if (userInventoryData.EquippedShieldData != null)
         {
@@ -110,6 +129,14 @@ public class InventoryUI : BaseUI
             //순회하며 각 아이템에 대해서 아이템 슬롯 인스턴스를 만들어 준다.
             foreach (var itemData in userInventoryData.InventoryItemDataList)
             {
+                //스크롤 뷰에 아이템 데이터를 하나씩 추가해 줄 때
+                //만약 장착된 아이템이라면 예외처리를 해주겠음
+                if (userInventoryData.IsEquipped(itemData.SerialNumber))
+                {
+                    continue;
+                }
+                
+                
                 var itemSlotData = new InventoryItemSlotData();
                 itemSlotData.SerialNumber = itemData.SerialNumber;
                 itemSlotData.ItemId = itemData.ItemId;
@@ -208,15 +235,75 @@ public class InventoryUI : BaseUI
         }
         SortInventory();
     }
-    // Start is called before the first frame update
-    void Start()
+    public void OnEquipItem(int itemId)
     {
-
+        //UserInventoryData를 가져옴
+        var userInventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
+        if(userInventoryData == null)
+        {
+            Logger.LogError("UserInventoryData does not exist");
+        }
+        //아이템 종류에 따른 분기 처리
+        var itemType = (ItemType)(itemId / 10000);
+        switch (itemType)
+        {
+            case ItemType.Weapon:
+                //무기를 장착하는 상황이라면 무기 슬롯을 세팅해줌
+                WeaponSlot.SetItem(userInventoryData.EquippedWeaponData);
+                break;
+            case ItemType.Shield:
+                ShieldSlot.SetItem(userInventoryData.EquippedShieldData);
+                break;
+            case ItemType.Gloves:
+                GlovesSlot.SetItem(userInventoryData.EquippedGlovesData);
+                break;
+            case ItemType.ChestArmor:
+                ChestArmorSlot.SetItem(userInventoryData.EquippedChestArmorData);
+                break;
+            case ItemType.Boots:
+                BootsSlot.SetItem(userInventoryData.EquippedBootsData);
+                break;
+            case ItemType.Accessory:
+                AccessorySlot.SetItem(userInventoryData.EquippedAcessoryData);
+                break;
+            default:
+                break;
+        }
+        SetUserStats();
+        SetInventory(); // 인벤토리를 다시 세팅
+        SortInventory(); //정렬까지 다시
     }
-
-    // Update is called once per frame
-    void Update()
+    public void OnUnequipItem(int itemId)
     {
-
+        var userinventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
+        if(userinventoryData == null)
+        {
+            Logger.LogError("UserinventoryData does not exist");
+        }
+        var itemType = (ItemType)(itemId / 10000);
+        switch (itemType)
+        {
+            case ItemType.Weapon:
+                WeaponSlot.ClearItem();
+                break;
+            case ItemType.Shield:
+                ShieldSlot.ClearItem();
+                break;
+            case ItemType.Gloves:
+                GlovesSlot.ClearItem();
+                break;
+            case ItemType.ChestArmor:
+                ChestArmorSlot.ClearItem();
+                break;
+            case ItemType.Boots:
+                BootsSlot.ClearItem();
+                break;
+            case ItemType.Accessory:
+                AccessorySlot.ClearItem();
+                break;
+        }
+        SetUserStats();
+        SetInventory();
+        SortInventory();
     }
 }
