@@ -18,6 +18,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
         UserDataList.Add(new UserSettingData());
         UserDataList.Add(new UserGoodsData());
         UserDataList.Add(new UserInventoryData());
+        UserDataList.Add(new UserPlayData());
     }
 
     public void SetDefaultUserData()

@@ -45,7 +45,7 @@ public class TitleManager : MonoBehaviour
         confirmUIData.CancleBtnTxt = "Cancle";
         UIManager.Instance.OpenUI<ConfirmUI>(confirmUIData);*/
         AudioManager.Instance.OnLoadUserData();
-        UIManager.Instance.EnalbeStatsUI(false);
+        UIManager.Instance.EnalbeGoodsUI(false);
         StartCoroutine(LoadGameGo());
     }
 

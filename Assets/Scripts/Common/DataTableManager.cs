@@ -42,6 +42,7 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
             {
                 //오브젝트 타입이라 지정된 개체의 값을 32비트 부호 있는 정수로 변환
                 ChapterNo = Convert.ToInt32(data["chapter_no"]),
+                ChapterName = data["chapter_name"].ToString(), // ChapterName변수에 로드한 데이터 값을 대입해주는 코드 추가
                 TotalStages = Convert.ToInt32(data["total_stages"]),
                 ChapterRewardGem = Convert.ToInt32(data["chapter_reward_gem"]),
                 ChapterRewardGold = Convert.ToInt32(data["chapter_reward_gold"]),
@@ -121,6 +122,7 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
 public class ChapterData
 {
     public int ChapterNo; //챕터 넘버
+    public string ChapterName; // 챕터명 변수 추가
     public int TotalStages; // 챕터 내 스테이지 개수
     public int ChapterRewardGem;//챕터를 클리어 했을 시 받게 되는 보석
     public int ChapterRewardGold;//챕터를 클리어 했을 시 받게 되는 골드

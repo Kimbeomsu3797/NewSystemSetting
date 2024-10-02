@@ -180,7 +180,7 @@ public class UIManager : SingletonBehaviour<UIManager>
         }
     }
 
-    public void EnalbeStatsUI(bool value) // => EnableGoodsUI
+    public void EnalbeGoodsUI(bool value) // => EnableGoodsUI
     {
         m_StatsUI.gameObject.SetActive(value);
 
