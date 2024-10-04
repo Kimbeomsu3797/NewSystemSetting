@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : SingletonBehaviour<UIManager>
 {
@@ -8,6 +10,8 @@ public class UIManager : SingletonBehaviour<UIManager>
     //UI 화면을 이 UI 캔버스 트랜스폼 하위에 위치시켜줘야하기 때문에 필요함.
 
     public Transform ClosedUITrs; // UI 화면을 닫을 때 비활성화 시킨 UI화면들을 위치시켜줄 트랜스폼
+
+    public Image m_Fade; // 페이드 이미지 컴퍼넌트 변수 추가
 
     private BaseUI m_FrontUI; //UI 화면이 열려있을 때 가장 상단에 열려있는 UI
 
@@ -17,15 +21,19 @@ public class UIManager : SingletonBehaviour<UIManager>
     private Dictionary<System.Type, GameObject> m_ClosedUIPool = new Dictionary<System.Type, GameObject>();
     //UI 화면이 열려있는지 닫혀있는지 구분이 필요하기 때문에 UI풀을 위와 같이 2개의 변수로 관리
 
-    private GoodsUI m_StatsUI;
+    private GoodsUI m_GoodsUI;
 
     protected override void Init()
     {
         base.Init();
-        //컴포넌트가 연동된 게임 오브젝트를 찾아서 GoodsUI컴퍼넌트를 리턴
-        m_StatsUI = FindObjectOfType<GoodsUI>();
+        
+        //컴포넌트 스케일을 0으로 해서 보이지 않도록 처리
+        m_Fade.transform.localScale = Vector3.zero;
 
-        if (!m_StatsUI)
+        //컴포넌트가 연동된 게임 오브젝트를 찾아서 GoodsUI컴퍼넌트를 리턴
+        m_GoodsUI = FindObjectOfType<GoodsUI>();
+
+        if (!m_GoodsUI)
         {
             Logger.Log("No stats ui component found.");
         }
@@ -91,7 +99,8 @@ public class UIManager : SingletonBehaviour<UIManager>
 
         //위의 유효성 검사를 통과해서 정상적으로 UI화면이 열릴 수 있다면
         //이제 실제로 UI화면을 열고 데이터를 세팅해 준다.
-        var siblingIdx = UICanvasTrs.childCount; //childCount 하위에 있는 게임 오브젝트 갯수
+        //페이드를 모든 UI요소보다 최상위에 있을 것이기 때문에 -1 -> -2로 해줘야함.
+        var siblingIdx = UICanvasTrs.childCount - 2; //childCount 하위에 있는 게임 오브젝트 갯수 // 부모까지 숫자로 세기때문에 -1이아닌 -2로 설정
         //디버그 찍어보기
         ui.Init(UICanvasTrs); //UI화면 초기화(위치시켜야할 상단 트랜스폼)
 
@@ -182,12 +191,45 @@ public class UIManager : SingletonBehaviour<UIManager>
 
     public void EnalbeGoodsUI(bool value) // => EnableGoodsUI
     {
-        m_StatsUI.gameObject.SetActive(value);
+        m_GoodsUI.gameObject.SetActive(value);
 
         if (value)
         {
-            m_StatsUI.SetValues();//함수를 호출해서 보유한 재화 수량 표시
+            m_GoodsUI.SetValues();//함수를 호출해서 보유한 재화 수량 표시
         }
     }
+    //페이드 함수
+    public void Fade(Color color, float startAlpha, float endAlpha, float duration, float startDelay, bool deactiveOnFinish, Action onFinish = null)
+    {
+        StartCoroutine(FadeCo(color, startAlpha, endAlpha, duration, startDelay, deactiveOnFinish, onFinish));
+    }
+    //페이드 처리 코루틴
+    private IEnumerator FadeCo(Color color, float startAlpha, float endAlpha, float duration, float startDelay, bool deactiveOnFinish, Action onFinish)
+    {
+        yield return new WaitForSeconds(startDelay);
 
+        m_Fade.transform.localScale = Vector3.one;
+        m_Fade.color = new Color(color.r, color.g, color.b, startAlpha);
+
+        var startTime = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup - startTime < duration)
+        {
+            m_Fade.color = new Color(color.r, color.g, color.b, Mathf.Lerp(startAlpha , endAlpha, (Time.realtimeSinceStartup - startTime) / duration));
+            yield return null;
+        }
+
+        m_Fade.color = new Color(color.r, color.g, color.b, endAlpha);
+
+        if (deactiveOnFinish)
+        {
+            m_Fade.transform.localScale = Vector3.zero;
+        }
+        onFinish?.Invoke(); // 페이드 처리가 끝났을 때 수행되길 원하는 로직이 있다면
+        //페이드가 끝나면 원하는 처리를 유동적으로 처리할 수 있도록
+        //처리를 해주도록 한다.
+    }
+    public void CancelFade()
+    {
+        m_Fade.transform.localScale = Vector3.zero;
+    }
 }

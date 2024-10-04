@@ -472,8 +472,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: LobbyUICtrl, Assembly-CSharp
+      - m_Target: {fileID: 3442282119900998535}
+        m_TargetAssemblyTypeName: LobbyUIController, Assembly-CSharp
         m_MethodName: OnClickStartBtn
         m_Mode: 1
         m_Arguments:
