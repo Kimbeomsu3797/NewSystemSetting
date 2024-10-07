@@ -369,6 +369,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GoldAmountTxt: {fileID: 2628845927228281542}
   GemAmountTxt: {fileID: 2628845926525999913}
+  GoldIcon: {fileID: 2628845927701205013}
+  GemIcon: {fileID: 2628845928066386456}
 --- !u!1 &2628845926909258304
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,6 +13,8 @@ public enum SFX
     chapter_clear,
     stage_clear,
     ui_button_click,
+    ui_get, // 재화 획득 효과음
+    ui_increase, //재화 텍스트 증가 효과음
     COUNT
 }
 public class AudioManager : SingletonBehaviour<AudioManager>

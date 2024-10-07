@@ -21,17 +21,21 @@ public class InGameUIController : MonoBehaviour
     {
         if(!focus)//게임을 이탈했다(앱을 내렸다)면
         {
-            var uiData = new BaseUIData();
-            UIManager.Instance.OpenUI<PauseUI>(uiData);
+            if(!InGameManager.Instance.IsPause && !InGameManager.Instance.IsStageCleared)
+            {
+                var uiData = new BaseUIData();
+                UIManager.Instance.OpenUI<PauseUI>(uiData);
 
-            InGameManager.Instance.PauseGame();
-            //예외처리 필요 오류날거같음
+                InGameManager.Instance.PauseGame();
+                //예외처리 필요 오류날거같음
+            }
+
         }
     }
     private void Update()
     {
         //인게임이 일시정지 되었는지 확인해서 일시정지 되지 않았을 때만 인풋을 처리해 주도록
-        if (!InGameManager.Instance.IsPause)
+        if (!InGameManager.Instance.IsPause && !InGameManager.Instance.IsStageCleared)
         {
             HandleInput();
             //예외처리 필요 오류날거같음 // pause가 열려있다면 안열리게

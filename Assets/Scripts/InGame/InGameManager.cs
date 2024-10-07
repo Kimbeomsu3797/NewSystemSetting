@@ -11,9 +11,12 @@ public class InGameManager : SingletonBehaviour<InGameManager>
     public bool IsPause { get; private set; }// 일시정지 여부를 저장할 변수
 
     private int m_SelectedChapter; // 현재 플레이하려는 챕터 변수 선언
+    private ChapterData m_CurrChapterData; //1)현재 플레이 중인 챕터의 챕터 데이터를 담을 변수
     private int m_CurrStage; //스테이지 변수 선언
     private const string STAGE_PATH = "Stages/"; //스테이지 프리팹을 로드할 디렉토리 상수를 선언
     private Transform m_StageTrs; // 스테이지오브젝트의 트랜스폼 변수를 선언
+    
+
     private SpriteRenderer m_Bg; //백그라운드 스프라이트 랜더러 컴퍼넌트 변수를 선언
 
     private GameObject m_LoadedStage; // 현재 스테이지 오브젝트 인스턴스를 가지고 있을 게임오브젝트 변수
@@ -85,12 +88,55 @@ public class InGameManager : SingletonBehaviour<InGameManager>
         {
             stageClearUI.CloseUI();
         }
+        //3) 현재 챕터에 존재하는 모든 스테이지를 클리어한 상황이라면 챕터 클리어 처리
+        if (IsAllClear())
+        {
+            ClearChapter();
+        }
+        else
+        {
+            IsStageCleared = false;
 
-        IsStageCleared = false;
+            m_CurrStage++;
 
-        m_CurrStage++;
+            LoadStage();
+        }
+        
+    }
+    //4) 현재 스테이지가 챕터 데이터의 토탈 스테이지 개수와 동일한지 비교
+    private bool IsAllClear()
+    {
+        return m_CurrStage == m_CurrChapterData.TotalStages;
+    }
 
-        LoadStage();
+    public void ClearChapter()
+    {
+        AudioManager.Instance.PlaySFX(SFX.chapter_clear); // 효과음 재생
+
+        var userPlayData = UserDataManager.Instance.GetUserData<UserPlayData>(); // UserPlayData를 가져옴
+        if(userPlayData == null)
+        {
+            Logger.LogError("UserPlayData does not exist.");
+            return;
+        }
+
+        //먼저 챕터 클리어 화면을 보여줄 것
+        var uiData = new ChapterClearUIData();
+        uiData.chapter = m_SelectedChapter; // 챕터 값은 현재 챕터로 설정
+        //보상 지급 여부는 현재 챕터가 유저 플레이 데이터의 MaxClearedChapter값보다 큰지를 비교
+        uiData.earnReward = m_SelectedChapter > userPlayData.MaxClearedChapter;
+        UIManager.Instance.OpenUI<ChapterClearUI>(uiData); //ChapterClearUI 오픈
+
+        //그리고 현재 챕터가 아직 클리어하지 못한 챕터라면
+        if(m_SelectedChapter > userPlayData.MaxClearedChapter)
+        {
+            userPlayData.MaxClearedChapter++; //1증가시켜주고
+            userPlayData.SelectedChapter = userPlayData.MaxClearedChapter + 1;
+            //선택한 챕터도 방금 해금한 다음 챕터로 설정해 줌
+            //이는 로비로 나갔을 때 해금한 챕터가 선택한 챕터로 선택되도록 하기 위함.
+
+            userPlayData.SaveData();
+        }
     }
 
     private void InitVariables()
@@ -110,8 +156,8 @@ public class InGameManager : SingletonBehaviour<InGameManager>
 
         m_StageTrs = GameObject.Find("Stage").transform;
         m_Bg = GameObject.Find("Bg").GetComponent<SpriteRenderer>();
-        m_CurrStage = 1; // 스테이지는 1로 초기화 인게임에 진입하면 무조건 첫번째 스테이지부터 시작하니까
-
+        m_CurrStage = 20; // 스테이지는 1로 초기화 인게임에 진입하면 무조건 첫번째 스테이지부터 시작하니까
+        //실험용 임시 설정 다시 1로 초기화
         //유저 플레이 데이터를 가져와
         var userPlayData = UserDataManager.Instance.GetUserData<UserPlayData>();
         if(userPlayData == null)
@@ -121,6 +167,14 @@ public class InGameManager : SingletonBehaviour<InGameManager>
         }
         //현재 챕터값을 대입
         m_SelectedChapter = userPlayData.SelectedChapter;
+
+        //2)현재 선택한 챕터의 챕터 데이터를 가져와 m_CurrChapterData 변수에 대입
+        m_CurrChapterData = DataTableManager.Instance.GetChapterData(m_SelectedChapter);
+        if(m_CurrChapterData == null)
+        {
+            Logger.LogError($"ChapterData does not exist. Chapter:{m_CurrChapterData}");
+            return;
+        }
     }
 
     private void LoadBg()
