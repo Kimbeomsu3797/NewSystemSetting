@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static GlobalDefine;
 
 public class DataTableManager : SingletonBehaviour<DataTableManager>
 {
@@ -16,6 +17,7 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
 
         LoadChapterDataTable();
         LoadItemDataTable();
+        LoadAchievementDataTable(); //업적 scv파일을 로드하는 함수를 호출
     }
     #region CHAPTER_DATA
     //챕터 데이터 테이블 파일명을 갖는 String 변수
@@ -114,6 +116,46 @@ public class DataTableManager : SingletonBehaviour<DataTableManager>
         return ItemDataTable.Where(item => item.ItemId == itemid).FirstOrDefault();
     }
 
+    #endregion
+    #region ACHIEVEMENT_DATA
+    //데이터 테이블 명을 가진 변수를 선언
+    private const string ACHIEVEMENT_DATA_TABLE = "AchievementDataTable";
+    //아이템데이터를 담을 컨테이너를 선언
+    private List<AchievementData> AchievementDataTable = new List<AchievementData>();
+
+    //아이템 데이터를 로드하는 함수
+   public List<AchievementData> GetAchievementDataList()
+    {
+        return AchievementDataTable;
+    }
+    private void LoadAchievementDataTable()
+    {
+        //csv파일을 읽어옮
+        var parsedDataTable = CSVReader.Read($"{DATA_PATH}/{ACHIEVEMENT_DATA_TABLE}");
+
+        //로드한 데이터테이블을 순회하면서
+        //achievementData 인스턴스를 만들고
+        //각 변수를 로드한 데이터로 초기화
+        //변수 초기화가 완료되면 AchievementDataTable 자료구조에 추가
+        foreach (var data in parsedDataTable)
+        {
+            var achievementData = new AchievementData
+            {
+                AchievementType = (AchievementType)Enum.Parse(typeof(AchievementType), data["achievement_type"].ToString()),
+                AchievementName = data["achievement_name"].ToString(),
+                AchievementGoal = Convert.ToInt32(data["achievement_goal"]),
+                AchievementRewardType = (RewardType)Enum.Parse(typeof(RewardType), data["achievement_reward_type"].ToString()),
+                AchievementRewardAmount = Convert.ToInt32(data["achievement_reward_amount"]),
+            };
+            AchievementDataTable.Add(achievementData);
+        }
+
+
+    }
+    public AchievementData GetAchievementData(AchievementType achievementType)
+    {
+        return AchievementDataTable.Where(item => item.AchievementType == achievementType).FirstOrDefault();
+    }
     #endregion
 }
 

@@ -75,6 +75,12 @@ public class ChapterClearUI : BaseUI
             var goldUpdateMsg = new GoldUpdateMsg();//골드 변동 메세지 인스턴스 생성
             goldUpdateMsg.isAdd = true;//변수값을 설정해주고
             Messenger.Default.Publish(goldUpdateMsg);//메세지 발행
+            var userAchievementData = UserDataManager.Instance.GetUserData<UserAchievementData>();
+            if(userAchievementData != null)
+            {
+                //업적 진행 처리, 업적 타입은 골드 획득으로 지정해 주고 업적 달성 수치는 획득한 골드양으로 해주겠음.
+                userAchievementData.ProgressAchievement(AchievementType.CollectGold, chapterData.ChapterRewardGold);
+            }
             //보석도 동일하게 처리
             var gemUpdateMsg = new GemUpdateMsg();
             gemUpdateMsg.isAdd = true;

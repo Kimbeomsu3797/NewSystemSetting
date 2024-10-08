@@ -114,4 +114,12 @@ public class LobbyUIController : MonoBehaviour
         AudioManager.Instance.StopBGM();
         LobbyManager.Instance.StartInGame(); //LobbyManager에서 구현
     }
+
+    public void OnClickAchievementBtn()
+    {
+        Logger.Log($"{GetType()}::OnClickAchievementBtn");
+
+        var uiData = new BaseUIData();
+        UIManager.Instance.OpenUI<AchievementUI>(uiData);
+    }
 }

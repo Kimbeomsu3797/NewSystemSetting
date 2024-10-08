@@ -48,6 +48,12 @@ public class InGameManager : SingletonBehaviour<InGameManager>
             return;
         }
         inGameUIController.Init();
+        var userAchievementData = UserDataManager.Instance.GetUserData<UserAchievementData>();
+        if(userAchievementData != null)
+        {
+            userAchievementData.ProgressAchievement(AchievementType.ClearChapter1, 1);
+            userAchievementData.ProgressAchievement(AchievementType.ClearChapter3, 1);
+        }
     }
     private void Update()
     {
@@ -136,6 +142,29 @@ public class InGameManager : SingletonBehaviour<InGameManager>
             //이는 로비로 나갔을 때 해금한 챕터가 선택한 챕터로 선택되도록 하기 위함.
 
             userPlayData.SaveData();
+        }
+        //챕터 클리어 업적 처리
+        //유저 업적 데이터를 가져옴
+        var userAchievementData = UserDataManager.Instance.GetUserData<UserAchievementData>();
+        if(userAchievementData != null)
+        {
+            //현재 선택한 챕터에 대해 스위치문으로 분기해서
+            //챕터 1,2,3에 대한 업적 진행 처리를 해주겠음.
+            //챕터 클리어 업적은 단순하게 1을 달성 수치로 넘겨 주겠음
+            switch (m_SelectedChapter)
+            {
+                case 1:
+                    userAchievementData.ProgressAchievement(AchievementType.ClearChapter1, 1);
+                    break;
+                case 2:
+                    userAchievementData.ProgressAchievement(AchievementType.ClearChapter2, 2);
+                    break;
+                case 3:
+                    userAchievementData.ProgressAchievement(AchievementType.ClearChapter3, 3);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
